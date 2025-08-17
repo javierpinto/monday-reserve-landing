@@ -485,7 +485,7 @@
 
     <script>
         // Monday.com API configuration
-        const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjE2MjcyNzQ5NiwiYWFpIjoxMSwidWlkIjoyODMwMzIxMSwiaWFkIjoiMjAyMi0wNS0yN1QxNTozNTowNS4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTEzMjE1NDYsInJnbiI6InVzZTEifQ.ZMK6JP3enhCJB-Ak80CP3s9JAZZ_LPAfMMTQTGeGDaU'; // Reemplazar con tu token de API
+        const MONDAY_API_TOKEN = 'YOUR_MONDAY_API_TOKEN'; // Reemplazar con tu token de API
         const BOARD_ID = 9819426015;
 
         // Form submission handler
@@ -535,28 +535,20 @@
 
         // Function to create item in Monday.com
         async function createMondayItem(data) {
-            const mutation = `
-                mutation CreateItem($boardId: ID!, $itemName: String!, $columnValues: JSON!) {
-                    create_item(board_id: $boardId, item_name: $itemName, column_values: $columnValues) {
-                        id
-                        name
-                    }
-                }
-            `;
+            // Preparar datos con formato correcto para Monday.com
+            const columnValues = {
+                "text_mkttwsxe": data.nombre,           // Nombre del Invitado (texto simple)
+                "email_mkttdysy": data.email,           // Email (será formateado en backend)
+                "phone_mktt53e7": data.telefono,        // Teléfono (será formateado en backend)
+                "text_mkttf67d": data.empresa,          // Empresa (texto simple)
+                "long_text_mkttfbxz": `Cargo: ${data.cargo}\n\nComentarios: ${data.comentarios}`, // Solicitudes Especiales
+                "long_text_mkttkqhg": `¡Bienvenido/a ${data.nombre}!\n\nGracias por registrarte al evento monday Reserve. Tu inscripción ha sido confirmada para el 24 de septiembre en Wine Bar by CMB.\n\nEmpresa: ${data.empresa}\nCargo: ${data.cargo}\n\nPronto recibirás más detalles sobre el evento. ¡Te esperamos!` // Mensaje de Confirmación Personalizado
+            };
 
-            // Mapear los datos del formulario a las columnas exactas del tablero Monday.com
-            const variables = {
-                boardId: BOARD_ID,
-                itemName: `${data.nombre} - ${data.empresa}`, // Nombre del item
-                columnValues: JSON.stringify({
-                    "text_mkttwsxe": data.nombre,           // Nombre del Invitado
-                    "email_mkttdysy": data.email,           // Correo Electrónico  
-                    "phone_mktt53e7": data.telefono,        // Teléfono
-                    "text_mkttf67d": data.empresa,          // Empresa
-                    "color_mkttd2ew": { "label": "Registrado" }, // Estado de la Inscripción
-                    "long_text_mkttfbxz": `Cargo: ${data.cargo}\n\nComentarios: ${data.comentarios}`, // Solicitudes Especiales
-                    "long_text_mkttkqhg": `¡Bienvenido/a ${data.nombre}!\n\nGracias por registrarte al evento monday Reserve. Tu inscripción ha sido confirmada para el 24 de septiembre en Wine Bar by CMB.\n\nEmpresa: ${data.empresa}\nCargo: ${data.cargo}\n\nPronto recibirás más detalles sobre el evento. ¡Te esperamos!` // Mensaje de Confirmación Personalizado
-                })
+            const requestData = {
+                boardId: BOARD_ID.toString(),
+                itemName: `${data.nombre} - ${data.empresa}`,
+                columnValues: JSON.stringify(columnValues)
             };
 
             // Enviar al endpoint de Netlify Functions
@@ -567,16 +559,23 @@
                 },
                 body: JSON.stringify({
                     action: 'create_item',
-                    data: variables
+                    data: requestData
                 })
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                throw new Error(errorData.error || 'Network response was not ok');
+                const errorText = await response.text();
+                console.error('Response error:', errorText);
+                throw new Error(`Server error: ${response.status}`);
             }
 
-            return await response.json();
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.error || 'Unknown error from server');
+            }
+
+            return result;
         }
 
         // Modal functions
