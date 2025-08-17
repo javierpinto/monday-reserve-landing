@@ -1,0 +1,26 @@
+{
+    "name": "monday-reserve-landing",
+    "version": "1.0.0",
+    "description": "Landing page exclusiva para el evento monday Reserve en México",
+    "main": "index.html",
+    "scripts": {
+        "build": "echo 'Static site - no build needed'",
+        "dev": "netlify dev",
+        "deploy": "netlify deploy --prod",
+        "test": "echo 'Testing endpoint...' && curl -X POST http://localhost:8888/.netlify/functions/monday-webhook"
+    },
+    "keywords": [
+        "monday.com",
+        "evento",
+        "landing-page",
+        "mexico"
+    ],
+    "author": "monday.com Mexico",
+    "license": "MIT",
+    "devDependencies": {
+        "netlify-cli": "^23.1.4"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}
